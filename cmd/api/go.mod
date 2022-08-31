@@ -1,3 +1,3 @@
-module github.com/ningenme/github-batch/cmd/api
+module github.com/ningenme/nina/cmd/api
 
 go 1.19
