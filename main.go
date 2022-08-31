@@ -1,7 +1,13 @@
 package main
 
-import ContributionSummaryUsecase "github.com/ningenme/nina/cmd"
+import (
+	"flag"
+
+	"github.com/ningenme/nina/cmd"
+)
 
 func main() {
-	ContributionSummaryUsecase.Execute()
+	var t = flag.String("t", "hoge", "personal access token")
+	flag.Parse()
+	cmd.Execute(*t)
 }

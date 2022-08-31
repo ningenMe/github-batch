@@ -1,0 +1,22 @@
+github.PullRequestReview{ID:1066153967, User:github.User
+{
+    Login:"de-yu-makino", ID:84821147, NodeID:"MDQ6VXNlcjg0ODIxMTQ3", 
+    AvatarURL:"https://avatars.githubusercontent.com/u/84821147?u=93ae3dd53cc0e8a80820ab477a55dd3d27c4b9e7&v=4", 
+    HTMLURL:"https://github.com/de-yu-makino", GravatarID:"", Type:"User", SiteAdmin:false, 
+    URL:"https://api.github.com/users/de-yu-makino", 
+    EventsURL:"https://api.github.com/users/de-yu-makino/events{/privacy}", 
+    FollowingURL:"https://api.github.com/users/de-yu-makino/following{/other_user}", 
+    FollowersURL:"https://api.github.com/users/de-yu-makino/followers", 
+    GistsURL:"https://api.github.com/users/de-yu-makino/gists{/gist_id}", 
+    OrganizationsURL:"https://api.github.com/users/de-yu-makino/orgs", 
+    ReceivedEventsURL:"https://api.github.com/users/de-yu-makino/received_events", 
+    ReposURL:"https://api.github.com/users/de-yu-makino/repos", 
+    StarredURL:"https://api.github.com/users/de-yu-makino/starred{/owner}{/repo}", 
+    SubscriptionsURL:"https://api.github.com/users/de-yu-makino/subscriptions"
+}, 
+Body:"", 
+SubmittedAt:time.Time{wall:, ext:}, 
+CommitID:"f71d139dc3156aad0a07f68f7425793daf2cd540", 
+HTMLURL:"https://github.com/demae-can/merchant-admin/pull/3163#pullrequestreview-1066153967", 
+PullRequestURL:"https://api.github.com/repos/demae-can/merchant-admin/pulls/3163", 
+State:"COMMENTED"}
