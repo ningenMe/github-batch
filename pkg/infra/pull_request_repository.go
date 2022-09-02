@@ -35,10 +35,8 @@ func (PullRequestRepository) GetRepositoryList(client *github.Client, ctx contex
 	return repositoryList
 }
 
-func (PullRequestRepository) GetPullRequestList(client *github.Client, ctx context.Context, repository *github.Repository) []*github.PullRequest {
+func (PullRequestRepository) GetPullRequestList(client *github.Client, ctx context.Context, org string, repo string) []*github.PullRequest {
 
-	org := repository.Owner.GetLogin()
-	repo := repository.GetName()
 	opt := &github.PullRequestListOptions{
 		State:       "all",
 		ListOptions: github.ListOptions{PerPage: 30},
@@ -52,6 +50,8 @@ func (PullRequestRepository) GetPullRequestList(client *github.Client, ctx conte
 			os.Exit(1)
 		}
 		pullRequestList = append(pullRequestList, tmpPullRequestList...)
+
+		fmt.Println(org, repo, len(tmpPullRequestList), len(pullRequestList))
 		time.Sleep(1 * time.Second)
 
 		if response.NextPage == 0 {
