@@ -31,6 +31,7 @@ func Execute(personalAccessToken string) {
 		tmpPullRequestList := pullRequestRepository.GetPullRequestList(client, ctx, org, repo)
 		pullRequestList = append(pullRequestList, tmpPullRequestList...)
 	}
+	//contributionの一覧を取得
 	var contributionList []infra.Contribution
 	for _, pullRequest := range pullRequestList {
 		tmpContributionList := reviewRepository.GetContributionList(client, ctx, pullRequest)
