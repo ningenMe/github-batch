@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/google/go-github/github"
-	"github.com/ningenme/nina/pkg/infra"
+	"github.com/ningenme/nina-batch/pkg/infra"
 )
 
 const layout = "2006-01-02 15:04:05"

@@ -1,4 +1,4 @@
-module github.com/ningenme/nina
+module github.com/ningenme/nina-batch
 
 go 1.19
 
