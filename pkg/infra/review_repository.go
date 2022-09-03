@@ -22,6 +22,7 @@ type Contribution struct {
 
 type ReviewRepository struct{}
 
+// TODO 責務が大きいので分割
 func (ReviewRepository) GetContributionList(client *github.Client, ctx context.Context, pullRequest *github.PullRequest) []Contribution {
 
 	var contributionList []Contribution

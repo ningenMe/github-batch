@@ -37,6 +37,7 @@ func Execute(personalAccessToken string) {
 		tmpContributionList := reviewRepository.GetContributionList(client, ctx, pullRequest)
 		contributionList = append(contributionList, tmpContributionList...)
 	}
+	fmt.Println(len(repositoryList))
 	fmt.Println(len(pullRequestList))
 	fmt.Println(len(contributionList))
 	fmt.Println(loginUserName)
