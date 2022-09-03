@@ -10,20 +10,17 @@ import (
 
 // TODO domainmodelに移す
 type Contribution struct {
-	org   string
-	repo  string
-	time  time.Time
-	year  int
-	month time.Month
-	day   int
-	user  string
-	state string
+	Org   string
+	Repo  string
+	Time  time.Time
+	User  string
+	State string
 }
 
 type ReviewRepository struct{}
 
 // TODO 責務が大きいので分割
-func (ReviewRepository) GetContributionList(client *github.Client, ctx context.Context, pullRequest *github.PullRequest) []Contribution {
+func (ReviewRepository) GetContributionList(client *github.Client, ctx context.Context, pullRequest *github.PullRequest, startTime time.Time, endTime time.Time) []Contribution {
 
 	var contributionList []Contribution
 	org := pullRequest.GetHead().GetRepo().GetOwner().GetLogin()
@@ -33,14 +30,11 @@ func (ReviewRepository) GetContributionList(client *github.Client, ctx context.C
 	//prも追加
 	{
 		contribution := Contribution{
-			org:   org,
-			repo:  repo,
-			time:  pullRequest.GetCreatedAt(),
-			year:  pullRequest.GetCreatedAt().Year(),
-			month: pullRequest.GetCreatedAt().Month(),
-			day:   pullRequest.GetCreatedAt().Day(),
-			user:  pullRequest.GetUser().GetLogin(),
-			state: "CREATED_PULL_REQUEST",
+			Org:   org,
+			Repo:  repo,
+			Time:  pullRequest.GetCreatedAt(),
+			User:  pullRequest.GetUser().GetLogin(),
+			State: "CREATED_PULL_REQUEST",
 		}
 		contributionList = append(contributionList, contribution)
 	}
@@ -61,15 +55,21 @@ func (ReviewRepository) GetContributionList(client *github.Client, ctx context.C
 		}
 
 		for _, review := range reviewList {
+
+			//TODO periodごとドメインモデルに移して処理を共通化する
+			if review.GetSubmittedAt().After(endTime) {
+				continue
+			}
+			if review.GetSubmittedAt().Before(startTime) {
+				continue
+			}
+
 			contribution := Contribution{
-				org:   org,
-				repo:  repo,
-				time:  review.GetSubmittedAt(),
-				year:  review.GetSubmittedAt().Year(),
-				month: review.GetSubmittedAt().Month(),
-				day:   review.GetSubmittedAt().Day(),
-				user:  review.GetUser().GetLogin(),
-				state: review.GetState(),
+				Org:   org,
+				Repo:  repo,
+				Time:  review.GetSubmittedAt(),
+				User:  review.GetUser().GetLogin(),
+				State: review.GetState(),
 			}
 			fmt.Println(contribution)
 			contributionList = append(contributionList, contribution)

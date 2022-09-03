@@ -35,7 +35,7 @@ func (PullRequestRepository) GetRepositoryList(client *github.Client, ctx contex
 	return repositoryList
 }
 
-func (PullRequestRepository) GetPullRequestList(client *github.Client, ctx context.Context, org string, repo string) []*github.PullRequest {
+func (PullRequestRepository) GetPullRequestList(client *github.Client, ctx context.Context, org string, repo string, startTime time.Time, endTime time.Time) []*github.PullRequest {
 
 	opt := &github.PullRequestListOptions{
 		State:       "all",
@@ -49,7 +49,17 @@ func (PullRequestRepository) GetPullRequestList(client *github.Client, ctx conte
 			fmt.Println(err.Error())
 			os.Exit(1)
 		}
-		pullRequestList = append(pullRequestList, tmpPullRequestList...)
+		for _, pullRequest := range tmpPullRequestList {
+
+			//TODO periodごとドメインモデルに移して処理を共通化する
+			if pullRequest.GetCreatedAt().After(endTime) {
+				continue
+			}
+			if pullRequest.GetUpdatedAt().Before(startTime) {
+				continue
+			}
+			pullRequestList = append(pullRequestList, pullRequest)
+		}
 
 		fmt.Println(org, repo, len(tmpPullRequestList), len(pullRequestList))
 		time.Sleep(1 * time.Second)
