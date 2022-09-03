@@ -39,9 +39,6 @@ func Execute(personalAccessToken string) {
 	}
 	fmt.Println(len(pullRequestList))
 	fmt.Println(len(contributionList))
-	os.Exit(1)
 	fmt.Println(loginUserName)
-
-	//永続化
-	//{org,repo,date,user,pr_count,review_comment_count,review_approve_count}
+	os.Exit(1)
 }

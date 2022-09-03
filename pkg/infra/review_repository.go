@@ -12,6 +12,7 @@ import (
 type Contribution struct {
 	org   string
 	repo  string
+	time  time.Time
 	year  int
 	month time.Month
 	day   int
@@ -33,6 +34,7 @@ func (ReviewRepository) GetContributionList(client *github.Client, ctx context.C
 		contribution := Contribution{
 			org:   org,
 			repo:  repo,
+			time:  pullRequest.GetCreatedAt(),
 			year:  pullRequest.GetCreatedAt().Year(),
 			month: pullRequest.GetCreatedAt().Month(),
 			day:   pullRequest.GetCreatedAt().Day(),
@@ -61,12 +63,14 @@ func (ReviewRepository) GetContributionList(client *github.Client, ctx context.C
 			contribution := Contribution{
 				org:   org,
 				repo:  repo,
+				time:  review.GetSubmittedAt(),
 				year:  review.GetSubmittedAt().Year(),
 				month: review.GetSubmittedAt().Month(),
 				day:   review.GetSubmittedAt().Day(),
 				user:  review.GetUser().GetLogin(),
 				state: review.GetState(),
 			}
+			fmt.Println(contribution)
 			contributionList = append(contributionList, contribution)
 		}
 
