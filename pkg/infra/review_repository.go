@@ -6,35 +6,28 @@ import (
 	"time"
 
 	"github.com/google/go-github/github"
+	"github.com/ningenme/nina-api/pkg/domainmodel" //TODO domainmodelをリポジトリに切り出す
 )
-
-// TODO domainmodelに移す
-type Contribution struct {
-	Org   string
-	Repo  string
-	Time  time.Time
-	User  string
-	State string
-}
 
 type ReviewRepository struct{}
 
 // TODO 責務が大きいので分割
-func (ReviewRepository) GetContributionList(client *github.Client, ctx context.Context, pullRequest *github.PullRequest, startTime time.Time, endTime time.Time) []Contribution {
+func (ReviewRepository) GetContributionList(client *github.Client, ctx context.Context, pullRequest *github.PullRequest, startTime time.Time, endTime time.Time) []*domainmodel.Contribution {
 
-	var contributionList []Contribution
+	var contributionList []*domainmodel.Contribution
+
 	org := pullRequest.GetHead().GetRepo().GetOwner().GetLogin()
 	repo := pullRequest.GetHead().GetRepo().GetName()
 	number := pullRequest.GetNumber()
 
 	//prも追加
 	{
-		contribution := Contribution{
-			Org:   org,
-			Repo:  repo,
-			Time:  pullRequest.GetCreatedAt(),
-			User:  pullRequest.GetUser().GetLogin(),
-			State: "CREATED_PULL_REQUEST",
+		contribution := &domainmodel.Contribution{
+			ContributedAt: pullRequest.GetCreatedAt(),
+			Organization:  org,
+			Repository:    repo,
+			User:          pullRequest.GetUser().GetLogin(),
+			Status:        "CREATED_PULL_REQUEST",
 		}
 		contributionList = append(contributionList, contribution)
 	}
@@ -49,8 +42,6 @@ func (ReviewRepository) GetContributionList(client *github.Client, ctx context.C
 			opt,
 		)
 		if err != nil {
-			// fmt.Println(err.Error())
-			// os.Exit(1)
 			break
 		}
 
@@ -64,12 +55,12 @@ func (ReviewRepository) GetContributionList(client *github.Client, ctx context.C
 				continue
 			}
 
-			contribution := Contribution{
-				Org:   org,
-				Repo:  repo,
-				Time:  review.GetSubmittedAt(),
-				User:  review.GetUser().GetLogin(),
-				State: review.GetState(),
+			contribution := &domainmodel.Contribution{
+				ContributedAt: review.GetSubmittedAt(),
+				Organization:  org,
+				Repository:    repo,
+				User:          review.GetUser().GetLogin(),
+				Status:        review.GetState(),
 			}
 			fmt.Println(contribution)
 			contributionList = append(contributionList, contribution)

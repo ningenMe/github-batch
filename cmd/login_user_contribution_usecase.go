@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/ningenme/nina-api/pkg/domainmodel"
 	"os"
 	"time"
 
@@ -30,7 +31,7 @@ func (LoginUserContributionUsecase) Execute(personalAccessToken string, startTim
 	client := userRepository.GetAuthenticatedClient(personalAccessToken, ctx)
 	//ユーザ名を取得
 	loginUserName := userRepository.GetLoginUserName(client, ctx)
-	//repisotiryの一覧を取得
+	//repositoryの一覧を取得
 	repositoryList := pullRequestRepository.GetRepositoryList(client, ctx)
 	//pullRequestの一覧を取得
 	var pullRequestList []*github.PullRequest
@@ -47,7 +48,7 @@ func (LoginUserContributionUsecase) Execute(personalAccessToken string, startTim
 		pullRequestList = append(pullRequestList, tmpPullRequestList...)
 	}
 	//contributionの一覧を取得
-	var contributionList []infra.Contribution
+	var contributionList []*domainmodel.Contribution
 	for _, pullRequest := range pullRequestList {
 		tmpContributionList := reviewRepository.GetContributionList(client, ctx, pullRequest, startTime, endTime)
 		contributionList = append(contributionList, tmpContributionList...)
