@@ -3,10 +3,14 @@ package infra
 import (
 	"context"
 	"fmt"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"io"
 	"time"
 
 	"github.com/google/go-github/github"
 	"github.com/ningenme/nina-api/pkg/domainmodel" //TODO domainmodelをリポジトリに切り出す
+	"github.com/ningenMe/mami-interface/nina-api-grpc/mami"
 )
 
 type ReviewRepository struct{}
@@ -62,11 +66,9 @@ func (ReviewRepository) GetContributionList(client *github.Client, ctx context.C
 				User:          review.GetUser().GetLogin(),
 				Status:        review.GetState(),
 			}
-			fmt.Println(contribution)
 			contributionList = append(contributionList, contribution)
 		}
 
-		fmt.Println(org, repo, number, len(reviewList), len(contributionList))
 		time.Sleep(1 * time.Second)
 
 		if response.NextPage == 0 {
@@ -76,4 +78,74 @@ func (ReviewRepository) GetContributionList(client *github.Client, ctx context.C
 	}
 
 	return contributionList
+}
+
+func (ReviewRepository) PostContributionList(ctx context.Context, contributionList []*domainmodel.Contribution) {
+	cc, err := grpc.Dial(
+		NinaApiHost,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithBlock(),
+	)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer cc.Close()
+
+	client := mami.NewGithubContributionServiceClient(cc)
+	stream, err := client.Post(ctx)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	for idx, co := range contributionList {
+		if err := stream.Send(&mami.PostGithubContributionRequest{
+			Contribution: &mami.Contribution{
+				ContributedAt: co.ContributedAt.Format(time.RFC3339),
+				Organization: co.Organization,
+				Repository: co.Repository,
+				User: co.User,
+				Status: co.Status,
+			},
+		}); err != nil {
+			if err == io.EOF {
+				break
+			}
+			return
+		}
+
+		fmt.Println(idx+1 , "/" , len(contributionList))
+		fmt.Println(co)
+		time.Sleep(time.Millisecond * 50)
+	}
+
+	_, err = stream.CloseAndRecv()
+	if err != nil {
+		return
+	}
+}
+
+func (ReviewRepository) DeleteContributionList(ctx context.Context, startTime time.Time, endTime time.Time) {
+	cc, err := grpc.Dial(
+		NinaApiHost,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithBlock(),
+	)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer cc.Close()
+
+	client := mami.NewGithubContributionServiceClient(cc)
+	_, err = client.Delete(ctx, &mami.DeleteGithubContributionRequest{
+		StartAt: startTime.Format(time.RFC3339),
+		EndAt: endTime.Format(time.RFC3339),
+	})
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 }

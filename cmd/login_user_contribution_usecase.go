@@ -28,34 +28,44 @@ func (LoginUserContributionUsecase) Execute(personalAccessToken string, startTim
 	reviewRepository := infra.ReviewRepository{}
 
 	//認証を行う
+	fmt.Println("authentication start")
 	client := userRepository.GetAuthenticatedClient(personalAccessToken, ctx)
-	//ユーザ名を取得
 	loginUserName := userRepository.GetLoginUserName(client, ctx)
+
 	//repositoryの一覧を取得
+	fmt.Println("getting repository list start")
 	repositoryList := pullRequestRepository.GetRepositoryList(client, ctx)
+
 	//pullRequestの一覧を取得
+	fmt.Println("getting pullRequest list start")
 	var pullRequestList []*github.PullRequest
-	// for _, repository := range repositoryList {
-	// 	org := repository.Owner.GetLogin()
-	// 	repo := repository.GetName()
-	// 	tmpPullRequestList := pullRequestRepository.GetPullRequestList(client, ctx, org, repo)
-	// 	pullRequestList = append(pullRequestList, tmpPullRequestList...)
-	// }
-	{
-		org := "ningenMe"
-		repo := "zeus"
+	for _, repository := range repositoryList {
+		org := repository.Owner.GetLogin()
+		repo := repository.GetName()
 		tmpPullRequestList := pullRequestRepository.GetPullRequestList(client, ctx, org, repo, startTime, endTime)
 		pullRequestList = append(pullRequestList, tmpPullRequestList...)
 	}
+	//{
+	//	org := "ningenMe"
+	//	repo := "zeus"
+	//	tmpPullRequestList := pullRequestRepository.GetPullRequestList(client, ctx, org, repo, startTime, endTime)
+	//	pullRequestList = append(pullRequestList, tmpPullRequestList...)
+	//}
+
 	//contributionの一覧を取得
+	fmt.Println("getting contribution list start")
 	var contributionList []*domainmodel.Contribution
 	for _, pullRequest := range pullRequestList {
 		tmpContributionList := reviewRepository.GetContributionList(client, ctx, pullRequest, startTime, endTime)
 		contributionList = append(contributionList, tmpContributionList...)
 	}
-	fmt.Println(len(repositoryList))
-	fmt.Println(len(pullRequestList))
-	fmt.Println(len(contributionList))
+
+
+
+	//contributionを永続化
+	fmt.Println("inserting contribution list start")
+	reviewRepository.PostContributionList(ctx, contributionList)
+
 	fmt.Println(loginUserName)
 	os.Exit(1)
 }

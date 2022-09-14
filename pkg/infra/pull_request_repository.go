@@ -25,7 +25,7 @@ func (PullRequestRepository) GetRepositoryList(client *github.Client, ctx contex
 		}
 		for _, repository := range tmpRepositoryList {
 			repositoryList = append(repositoryList, repository)
-			fmt.Println(repository.Owner.GetLogin(), repository.GetName())
+			//fmt.Println(repository.Owner.GetLogin(), repository.GetName())
 		}
 		if response.NextPage == 0 {
 			break
@@ -61,7 +61,6 @@ func (PullRequestRepository) GetPullRequestList(client *github.Client, ctx conte
 			pullRequestList = append(pullRequestList, pullRequest)
 		}
 
-		fmt.Println(org, repo, len(tmpPullRequestList), len(pullRequestList))
 		time.Sleep(1 * time.Second)
 
 		if response.NextPage == 0 {
