@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/credentials/insecure"
 	"io"
 	"time"
 
@@ -87,7 +86,7 @@ func (ReviewRepository) GetContributionList(client *github.Client, ctx context.C
 func (ReviewRepository) PostContributionList(ctx context.Context, contributionList []*domainmodel.Contribution) {
 	cc, err := grpc.Dial(
 		NinaApiHost,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{InsecureSkipVerify: false})),
 		grpc.WithBlock(),
 	)
 	if err != nil {
@@ -108,15 +107,13 @@ func (ReviewRepository) PostContributionList(ctx context.Context, contributionLi
 	for idx, list := range partitionedList {
 		tmpList := []*mami.Contribution{}
 		for _, co := range list {
-			fmt.Println(co)
-			fmt.Println(&co)
-			//tmpList = append(tmpList, &mami.Contribution{
-			//	ContributedAt: co.ContributedAt.Format(time.RFC3339),
-			//	Organization: co.Organization,
-			//	Repository: co.Repository,
-			//	User: co.User,
-			//	Status: co.Status,
-			//})
+			tmpList = append(tmpList, &mami.Contribution{
+				ContributedAt: co.ContributedAt.Format(time.RFC3339),
+				Organization: co.Organization,
+				Repository: co.Repository,
+				User: co.User,
+				Status: co.Status,
+			})
 		}
 		if err := stream.Send(&mami.PostGithubContributionRequest{
 			Contributions: tmpList,
