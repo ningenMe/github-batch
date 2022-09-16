@@ -80,7 +80,7 @@ func (LoginUserContributionUsecase) Execute(personalAccessToken string, startTim
 
 	fmt.Println(loginUserName)
 	fmt.Println(len(repositoryList))
-	os.Exit(1)
+	os.Exit(0)
 }
 
 // TODO 適切な置き場所を考える
