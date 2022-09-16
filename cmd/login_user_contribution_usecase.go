@@ -14,6 +14,7 @@ import (
 const layout = "2006-01-02 15:04:05"
 const startTimeSuffix = " 00:00:00"
 const endTimeSuffix = " 23:59:59"
+const LogIndent = "        "
 
 type LoginUserContributionUsecase struct{}
 
@@ -44,6 +45,8 @@ func (LoginUserContributionUsecase) Execute(personalAccessToken string, startTim
 		repo := repository.GetName()
 		tmpPullRequestList := pullRequestRepository.GetPullRequestList(client, ctx, org, repo, startTime, endTime)
 		pullRequestList = append(pullRequestList, tmpPullRequestList...)
+
+		fmt.Println(LogIndent, org, repo, len(tmpPullRequestList))
 	}
 	//{
 	//	org := "ningenMe"
@@ -57,7 +60,14 @@ func (LoginUserContributionUsecase) Execute(personalAccessToken string, startTim
 	var contributionList []*domainmodel.Contribution
 	for _, pullRequest := range pullRequestList {
 		tmpContributionList := reviewRepository.GetContributionList(client, ctx, pullRequest, startTime, endTime)
-		contributionList = append(contributionList, tmpContributionList...)
+
+		//loginUserNameでfilter
+		for _, contribution := range tmpContributionList {
+			if contribution.User != loginUserName {
+				continue
+			}
+			contributionList = append(contributionList, contribution)
+		}
 	}
 
 	//contributionを削除

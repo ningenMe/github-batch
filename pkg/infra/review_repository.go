@@ -9,13 +9,13 @@ import (
 	"time"
 
 	"github.com/google/go-github/github"
-	"github.com/ningenme/nina-api/pkg/domainmodel" //TODO domainmodelをリポジトリに切り出す
 	"github.com/ningenMe/mami-interface/nina-api-grpc/mami"
+	"github.com/ningenme/nina-api/pkg/domainmodel" //TODO domainmodelをリポジトリに切り出す
 )
 
 type ReviewRepository struct{}
 
-const NinaApiHost = "43.206.43.108:8081"
+const NinaApiHost = "nina-api.ningenme.net:443"
 
 // TODO 責務が大きいので分割
 func (ReviewRepository) GetContributionList(client *github.Client, ctx context.Context, pullRequest *github.PullRequest, startTime time.Time, endTime time.Time) []*domainmodel.Contribution {
