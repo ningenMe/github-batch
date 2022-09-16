@@ -60,13 +60,16 @@ func (LoginUserContributionUsecase) Execute(personalAccessToken string, startTim
 		contributionList = append(contributionList, tmpContributionList...)
 	}
 
-
+	//contributionを削除
+	fmt.Println("deleting contribution list start")
+	reviewRepository.DeleteContributionList(ctx, startTime, endTime)
 
 	//contributionを永続化
 	fmt.Println("inserting contribution list start")
 	reviewRepository.PostContributionList(ctx, contributionList)
 
 	fmt.Println(loginUserName)
+	fmt.Println(len(repositoryList))
 	os.Exit(1)
 }
 

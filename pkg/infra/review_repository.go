@@ -15,6 +15,8 @@ import (
 
 type ReviewRepository struct{}
 
+const NinaApiHost = "43.206.43.108:8081"
+
 // TODO 責務が大きいので分割
 func (ReviewRepository) GetContributionList(client *github.Client, ctx context.Context, pullRequest *github.PullRequest, startTime time.Time, endTime time.Time) []*domainmodel.Contribution {
 
@@ -100,6 +102,7 @@ func (ReviewRepository) PostContributionList(ctx context.Context, contributionLi
 		return
 	}
 
+	//TODO listで投げて2秒sleepにする
 	for idx, co := range contributionList {
 		if err := stream.Send(&mami.PostGithubContributionRequest{
 			Contribution: &mami.Contribution{
@@ -116,9 +119,8 @@ func (ReviewRepository) PostContributionList(ctx context.Context, contributionLi
 			return
 		}
 
-		fmt.Println(idx+1 , "/" , len(contributionList))
-		fmt.Println(co)
-		time.Sleep(time.Millisecond * 50)
+		fmt.Println(idx+1 , "/" , len(contributionList), co)
+		time.Sleep(time.Millisecond * 500)
 	}
 
 	_, err = stream.CloseAndRecv()
