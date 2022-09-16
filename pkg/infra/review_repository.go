@@ -102,16 +102,22 @@ func (ReviewRepository) PostContributionList(ctx context.Context, contributionLi
 		return
 	}
 
-	//TODO listで投げて2秒sleepにする
-	for idx, co := range contributionList {
+	partitionedList := domainmodel.PartitionedList[domainmodel.Contribution](contributionList, 20)
+	for idx, list := range partitionedList {
+		tmpList := []*mami.Contribution{}
+		for _, co := range list {
+			fmt.Println(co)
+			fmt.Println(&co)
+			//tmpList = append(tmpList, &mami.Contribution{
+			//	ContributedAt: co.ContributedAt.Format(time.RFC3339),
+			//	Organization: co.Organization,
+			//	Repository: co.Repository,
+			//	User: co.User,
+			//	Status: co.Status,
+			//})
+		}
 		if err := stream.Send(&mami.PostGithubContributionRequest{
-			Contribution: &mami.Contribution{
-				ContributedAt: co.ContributedAt.Format(time.RFC3339),
-				Organization: co.Organization,
-				Repository: co.Repository,
-				User: co.User,
-				Status: co.Status,
-			},
+			Contributions: tmpList,
 		}); err != nil {
 			if err == io.EOF {
 				break
@@ -119,8 +125,9 @@ func (ReviewRepository) PostContributionList(ctx context.Context, contributionLi
 			return
 		}
 
-		fmt.Println(idx+1 , "/" , len(contributionList), co)
-		time.Sleep(time.Millisecond * 500)
+		fmt.Println(idx+1 , "/" , len(partitionedList))
+		time.Sleep(time.Second * 2)
+
 	}
 
 	_, err = stream.CloseAndRecv()
