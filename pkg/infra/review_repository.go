@@ -2,8 +2,10 @@ package infra
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"io"
 	"time"
@@ -139,7 +141,7 @@ func (ReviewRepository) PostContributionList(ctx context.Context, contributionLi
 func (ReviewRepository) DeleteContributionList(ctx context.Context, startTime time.Time, endTime time.Time) {
 	cc, err := grpc.Dial(
 		NinaApiHost,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{InsecureSkipVerify: false})),
 		grpc.WithBlock(),
 	)
 	if err != nil {
