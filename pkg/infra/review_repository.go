@@ -4,13 +4,13 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	nina_api_grpc "github.com/ningenMe/mami-interface/mami-generated-server/nina-api-grpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"io"
 	"time"
 
 	"github.com/google/go-github/github"
-	"github.com/ningenMe/mami-interface/nina-api-grpc/mami"
 	"github.com/ningenme/nina-api/pkg/domainmodel" //TODO domainmodelをリポジトリに切り出す
 )
 
@@ -95,7 +95,7 @@ func (ReviewRepository) PostContributionList(ctx context.Context, contributionLi
 	}
 	defer cc.Close()
 
-	client := mami.NewGithubContributionServiceClient(cc)
+	client := nina_api_grpc.NewGithubContributionServiceClient(cc)
 	stream, err := client.Post(ctx)
 
 	if err != nil {
@@ -105,9 +105,9 @@ func (ReviewRepository) PostContributionList(ctx context.Context, contributionLi
 
 	partitionedList := domainmodel.PartitionedList[domainmodel.Contribution](contributionList, 20)
 	for idx, list := range partitionedList {
-		tmpList := []*mami.Contribution{}
+		tmpList := []*nina_api_grpc.Contribution{}
 		for _, co := range list {
-			tmpList = append(tmpList, &mami.Contribution{
+			tmpList = append(tmpList, &nina_api_grpc.Contribution{
 				ContributedAt: co.ContributedAt.Format(time.RFC3339),
 				Organization: co.Organization,
 				Repository: co.Repository,
@@ -115,7 +115,7 @@ func (ReviewRepository) PostContributionList(ctx context.Context, contributionLi
 				Status: co.Status,
 			})
 		}
-		if err := stream.Send(&mami.PostGithubContributionRequest{
+		if err := stream.Send(&nina_api_grpc.PostGithubContributionRequest{
 			Contributions: tmpList,
 		}); err != nil {
 			if err == io.EOF {
@@ -147,8 +147,8 @@ func (ReviewRepository) DeleteContributionList(ctx context.Context, startTime ti
 	}
 	defer cc.Close()
 
-	client := mami.NewGithubContributionServiceClient(cc)
-	_, err = client.Delete(ctx, &mami.DeleteGithubContributionRequest{
+	client := nina_api_grpc.NewGithubContributionServiceClient(cc)
+	_, err = client.Delete(ctx, &nina_api_grpc.DeleteGithubContributionRequest{
 		StartAt: startTime.Format(time.RFC3339),
 		EndAt: endTime.Format(time.RFC3339),
 	})

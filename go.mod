@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/google/go-github v17.0.0+incompatible
-	github.com/ningenMe/mami-interface v0.11.0
+	github.com/ningenMe/mami-interface v0.14.0
 	github.com/ningenme/nina-api v0.0.0-20220916214214-8eb1659b8fd2
 	golang.org/x/oauth2 v0.0.0-20220822191816-0ebed06d0094
 	google.golang.org/grpc v1.49.0
