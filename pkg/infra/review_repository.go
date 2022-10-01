@@ -4,11 +4,12 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"io"
+	"time"
+
 	nina_api_grpc "github.com/ningenMe/mami-interface/mami-generated-server/nina-api-grpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"io"
-	"time"
 
 	"github.com/google/go-github/github"
 	"github.com/ningenme/nina-api/pkg/domainmodel" //TODO domainmodelをリポジトリに切り出す
@@ -70,6 +71,7 @@ func (ReviewRepository) GetContributionList(client *github.Client, ctx context.C
 				Status:        review.GetState(),
 			}
 			contributionList = append(contributionList, contribution)
+			fmt.Printf("\r%s", contribution)
 		}
 
 		time.Sleep(1 * time.Second)
@@ -109,10 +111,10 @@ func (ReviewRepository) PostContributionList(ctx context.Context, contributionLi
 		for _, co := range list {
 			tmpList = append(tmpList, &nina_api_grpc.Contribution{
 				ContributedAt: co.ContributedAt.Format(time.RFC3339),
-				Organization: co.Organization,
-				Repository: co.Repository,
-				User: co.User,
-				Status: co.Status,
+				Organization:  co.Organization,
+				Repository:    co.Repository,
+				User:          co.User,
+				Status:        co.Status,
 			})
 		}
 		if err := stream.Send(&nina_api_grpc.PostGithubContributionRequest{
@@ -124,7 +126,7 @@ func (ReviewRepository) PostContributionList(ctx context.Context, contributionLi
 			return
 		}
 
-		fmt.Println(idx+1 , "/" , len(partitionedList))
+		fmt.Printf("\r %d / %d", idx+1, len(partitionedList))
 		time.Sleep(time.Second * 2)
 
 	}
@@ -150,7 +152,7 @@ func (ReviewRepository) DeleteContributionList(ctx context.Context, startTime ti
 	client := nina_api_grpc.NewGithubContributionServiceClient(cc)
 	_, err = client.Delete(ctx, &nina_api_grpc.DeleteGithubContributionRequest{
 		StartAt: startTime.Format(time.RFC3339),
-		EndAt: endTime.Format(time.RFC3339),
+		EndAt:   endTime.Format(time.RFC3339),
 	})
 	if err != nil {
 		fmt.Println(err)

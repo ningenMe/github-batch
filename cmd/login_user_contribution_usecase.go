@@ -3,9 +3,11 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/ningenme/nina-api/pkg/domainmodel"
 	"os"
+	"strings"
 	"time"
+
+	"github.com/ningenme/nina-api/pkg/domainmodel"
 
 	"github.com/google/go-github/github"
 	"github.com/ningenme/nina-batch/pkg/infra"
@@ -18,7 +20,12 @@ const LogIndent = "        "
 
 type LoginUserContributionUsecase struct{}
 
-func (LoginUserContributionUsecase) Execute(personalAccessToken string, startTimeString string, endTimeString string) {
+type SimpleRepository struct {
+	Org  string
+	Repo string
+}
+
+func (LoginUserContributionUsecase) Execute(personalAccessToken string, startTimeString string, endTimeString string, repositoryString string) {
 
 	startTime, endTime := getPeriod(startTimeString, endTimeString)
 
@@ -28,6 +35,9 @@ func (LoginUserContributionUsecase) Execute(personalAccessToken string, startTim
 	pullRequestRepository := infra.PullRequestRepository{}
 	reviewRepository := infra.ReviewRepository{}
 
+	//入力のリポジトリをパース
+	inputRepositoryList := getParsedRepositoryList(repositoryString)
+
 	//認証を行う
 	fmt.Println("authentication start")
 	client := userRepository.GetAuthenticatedClient(personalAccessToken, ctx)
@@ -35,14 +45,30 @@ func (LoginUserContributionUsecase) Execute(personalAccessToken string, startTim
 
 	//repositoryの一覧を取得
 	fmt.Println("getting repository list start")
-	repositoryList := pullRequestRepository.GetRepositoryList(client, ctx)
+	externalRepositoryList := pullRequestRepository.GetRepositoryList(client, ctx)
+
+	//リポジトリのリストをマージ
+	repositorySet := make(map[SimpleRepository]struct{})
+	for _, repository := range inputRepositoryList {
+		repositorySet[repository] = struct{}{}
+	}
+	for _, repository := range externalRepositoryList {
+		sr := SimpleRepository{
+			Org:  repository.Owner.GetLogin(),
+			Repo: repository.GetName(),
+		}
+		repositorySet[sr] = struct{}{}
+	}
+	for repository := range repositorySet {
+		fmt.Println(repository)
+	}
 
 	//pullRequestの一覧を取得
 	fmt.Println("getting pullRequest list start")
 	var pullRequestList []*github.PullRequest
-	for _, repository := range repositoryList {
-		org := repository.Owner.GetLogin()
-		repo := repository.GetName()
+	for repository := range repositorySet {
+		org := repository.Org
+		repo := repository.Repo
 		tmpPullRequestList := pullRequestRepository.GetPullRequestList(client, ctx, org, repo, startTime, endTime)
 		pullRequestList = append(pullRequestList, tmpPullRequestList...)
 
@@ -79,7 +105,7 @@ func (LoginUserContributionUsecase) Execute(personalAccessToken string, startTim
 	reviewRepository.PostContributionList(ctx, contributionList)
 
 	fmt.Println(loginUserName)
-	fmt.Println(len(repositoryList))
+	fmt.Println(len(repositorySet))
 	os.Exit(0)
 }
 
@@ -90,4 +116,24 @@ func getPeriod(startTimeString string, endTimeString string) (time.Time, time.Ti
 	endTime, _ := time.ParseInLocation(layout, endTimeString+endTimeSuffix, location)
 	fmt.Println(startTime, endTime)
 	return startTime, endTime
+}
+
+func getParsedRepositoryList(repositoryString string) []SimpleRepository {
+	separatedStringList := strings.Split(repositoryString, ",")
+
+	var list []SimpleRepository
+
+	for _, e := range separatedStringList {
+
+		tmp := strings.Split(e, ":")
+		if len(tmp) != 2 {
+			continue
+		}
+		list = append(list, SimpleRepository{
+			Org:  tmp[0],
+			Repo: tmp[1],
+		})
+	}
+
+	return list
 }
